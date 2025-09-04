@@ -5,25 +5,32 @@ const { WebSocketServer } = require("ws");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Servire i file statici (index.html, css, js ecc.)
-app.use(express.static(path.join(__dirname, "public")));
+// Percorso assoluto della cartella /public
+const publicPath = path.join(__dirname, "public");
 
-// Se l’utente apre la root "/", mandiamo index.html
+// Serve i file statici (index.html, css, js ecc.)
+app.use(express.static(publicPath));
+
+// Route per la homepage
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// --- WebSocket server ---
+// Avvia server HTTP
 const server = app.listen(PORT, () => {
   console.log(`Server in ascolto su http://localhost:${PORT}`);
 });
 
+// WebSocket server
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
   console.log("Nuovo client connesso");
+
   ws.on("message", (msg) => {
-    // Inoltra il messaggio a tutti
+    console.log("Messaggio ricevuto:", msg.toString());
+
+    // Invia il messaggio a tutti i client connessi
     wss.clients.forEach((client) => {
       if (client.readyState === ws.OPEN) {
         client.send(msg.toString());
